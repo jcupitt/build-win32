@@ -1,4 +1,6 @@
+.idea
 packages
 checkout
 inst
 .*.swp
+vips-dev*.zip

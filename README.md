@@ -1,112 +1,71 @@
-VIPS WIN32
-==========
+# build-win32
 
-This package makes a 32-bit Windows binary of libvips and nip2. If you want a
-64-bit Windows binary, see build-win64. The 64-bit version is also much 
-simpler to use. 
+Build a libvips binary for 32-bit Windows. The resulting zip file includes all
+necessary DLLs and EXEs.
 
-We use jhbuilder to git, mingw to compile, and good old zip to package the
-vips source code for WIN32.
+### Build with docker
 
-[JHBuild] (http://live.gnome.org/Jhbuild)
------------------------------------------
+Docker will make a light-weight virtual machine containing all the
+tools you need and build inside that. You won't need to install any
+extra stuff on the host machine, and everything is automated.
 
-JHBuild is a tool designed to ease building collections of source packages,
-called “modules”. JHBuild uses “module set” files to describe the
-modules available to build. The “module set” files include dependency
-information that allows JHBuild to discover what modules need to be built
-and in what order.
+First, install docker:
 
-[MinGW](http://www.mingw.org/)
-------------------------------
+```
+sudo apt-get install docker.io
+```
 
-MinGW, a contraction of "Minimalist GNU for Windows", is a minimalist
-development environment for native Microsoft Windows applications.
+On some Ubuntu installs, docker can fail to see DNS thanks to some interaction
+with NetworkManager. If it can't download stuff, edit `/etc/default/docker`
+and uncomment the line:
 
-MinGW provides a complete Open Source programming tool set which is suitable
-for the development of native MS-Windows applications, and which do not depend
-on any 3rd-party C-Runtime DLLs. (It does depend on a number of DLLs provided
-by Microsoft themselves, as components of the operating system; most notable
-among these is MSVCRT.DLL, the Microsoft C runtime library. Additionally,
-threaded applications must ship with a freely distributable thread support
-DLL, provided as part of MinGW itself).
+```
+DOCKER_OPTS="--dns 8.8.8.8 --dns 8.8.4.4"
+```
 
-PREREQUISITES
-=============
-[Ubuntu Desktop] (http://www.ubuntu.com/desktop/get-ubuntu/download)
-- This doesn't mean you can't get the process to work on anything else. This
-is simply what we are using and know to work. Tested on 10.10 and 11.04, 32-
-and 64-bit. Though you can only make a 32-bit Windows binary for now.
+And restart docker.
 
-OPTIONAL
-========
-[VMware Player] (http://www.vmware.com/products/player/) - Bubba runs his
-Ubuntu Desktop in a VMWare Player on a Windows 7 Ultimate x64 Desktop host.
+Then pass the build instructions to the docker service. You have to run
+this as root.
 
-[DEPENDENCIES] (http://xkcd.com/754/)
-==============
-It is possible that you already have some of these installed on your Ubuntu
-Desktop; however, it is not likely that you have all of them. Better safe
-than sorry, install them all. You might even want to update the whole kit,
-just for the heck of it.
+```
+sudo ./build.sh 8.4 all
+```
 
-Build/Tool Related Dependencies
--------------------------------
-    sudo apt-get install build-essential \
-	wine \
-	mingw32 \
-	jhbuild \
-	autoconf \
-	automake1.4 \
-	automake1.7 \
-	automake1.9 \
-	autotools-dev \
-	docbook-utils \
-	docbook2x \
-	gtk-doc-tools \
-	nasm \
-	bison \
-	flex
+At the end of the build, the script will display the paths of all the
+zip files it created, ready to be uploaded to the server. Be patient,
+this process can take an hour, even on a powerful machine.
 
-Library Dependencies
---------------------
-	sudo apt-get install libatk1.0-0 \
-	libatk1.0-dev \
-	libglib2.0-0 \
-	libglib2.0-dev \
-	libgtk2.0-0 \
-	libgtk2.0-dev \
-	libglade2-0 \
-	libglade2-dev \
-	libgsf-1-114 \
-	libgsf-gnome-1-dev \
-	libpango1.0-0 \
-	libpango1.0-dev \
-	libcairo2 \
-	libcairo2-dev \
-	libexpat1 \
-	libexpat1-dev \
-	libfontconfig1 \
-	libfontconfig1-dev \
-	libfreetype6 \
-	libfreetype6-dev \
-	gettext \
-	libpng12-0 \
-	libpng12-dev \
-	libxml2 \
-	libxml2-dev \
-	tango-icon-theme \
-	libcxxtools6 \
-	libcxxtools-dev \
-	zlib1g \
-	zlib1g-dev \
-	zlibc 
+### Build with `jhbuild`
 
-These are Ubuntu binaries and of course we will be building a Windows
-binary. However, some of the packages we build are not very good at
-cross-compiling and builds can fail unless they can find a native library as
-well.
+See the README in the 8.4 subdirectory for instructions for building
+directly in `jhbuild`.
 
-SUMMARY
-=======
-Check specific build folders for further instructions.
+### TODO
+
+- linux build needs to include all components that the win build has, so pdf,
+  svg, gif etc. 
+
+  maybe we should just include a good typelib? and Vips.py too? much simpler
+  than trying to build a complete linux install in the container
+
+- could turn on orc now
+
+- try installing win32 python and running it under wine so we can run the test
+  suite? who knows, it could work
+
+	wget https://www.python.org/ftp/python/2.7.10/python-2.7.10.amd64.msi
+
+  headless install
+
+	wine msiexec /qn /i python-2.7.10.amd64.msi 
+
+  does not set PATH, so to run, use:
+
+	WINEPATH=c:/python27 wine python.exe test.py
+
+  try
+
+	WINEPATH="c:/python27;/home/john/GIT/build-win32/8.4/x/vips-dev-8.4.1/bin" GI_TYPELIB_PATH=/home/john/GIT/build-win32/8.4/x/vips-dev-8.4.1/lib/girepository-1.0 wine python test_all.py
+
+
