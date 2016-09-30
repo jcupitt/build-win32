@@ -1,2 +1,4 @@
 #!/usr/bin/env bash
-docker-machine stop default
+docker-machine start default && \
+docker-machine env default && \
+eval $(docker-machine env default)
